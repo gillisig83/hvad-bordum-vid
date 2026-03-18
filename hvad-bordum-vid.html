@@ -392,7 +392,14 @@ hr{border:none;border-top:1px solid var(--border);margin:10px 0;}
 <script>
 const SURL='https://mnczdllakpoffgcxtnbj.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uY3pkbGxha3BvZmZnY3h0bmJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3ODI5NjQsImV4cCI6MjA4OTM1ODk2NH0.1raZl7-573HNq3VRQiOF-tAbmJ6gQJaMYy_9y0WP6F0';
-const sb=supabase.createClient(SURL,SKEY);
+const sb=supabase.createClient(SURL,SKEY,{
+  auth:{
+    storage:window.sessionStorage,
+    persistSession:true,
+    autoRefreshToken:true,
+    detectSessionInUrl:false,
+  }
+});
 
 let lang='is',user=null,profile=null,family=null,meals=[],week={},shop=[];
 
@@ -552,10 +559,21 @@ async function doForgot(){
   ok.style.display='none';err.textContent='';
   if(!email){err.textContent=lang==='is'?'Sláðu inn tölvupóstfang':'Enter your email';return;}
   btn.innerHTML='<span class="spin"></span>';btn.disabled=true;
-  const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
-  btn.textContent=t('fo-btn');btn.disabled=false;
-  if(error){err.textContent=error.message;}
-  else{ok.textContent=lang==='is'?'Hlekkur sendur! Athugaðu tölvupóstinn þinn 📬':'Link sent! Check your email 📬';ok.style.display='block';}
+  try {
+    const res=await fetch(`${SURL}/functions/v1/forgot-password`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email})
+    });
+    const data=await res.json();
+    if(!res.ok||data.error){err.textContent=data.error||'Villa';return;}
+    ok.textContent=lang==='is'?'Hlekkur sendur! Athugaðu tölvupóstinn þinn 📬':'Link sent! Check your email 📬';
+    ok.style.display='block';
+  } catch(e) {
+    err.textContent='Villa: '+e.message;
+  } finally {
+    btn.textContent=t('fo-btn');btn.disabled=false;
+  }
 }
 
 async function doLogout(){await sb.auth.signOut();closeUMenu();}
