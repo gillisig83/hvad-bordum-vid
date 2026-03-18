@@ -522,15 +522,26 @@ async function doReg(){
   const role=document.getElementById('rrole').value;
   const err=document.getElementById('re-err');
   const btn=document.getElementById('re-btn');
+  err.textContent='';
   if(!name||!email||!pw){err.textContent=lang==='is'?'Fylltu inn alla reiti':'Fill in all fields';return;}
   if(pw.length<6){err.textContent=lang==='is'?'Lykilorð þarf að vera min. 6 stafir':'Password must be at least 6 chars';return;}
   btn.innerHTML='<span class="spin"></span>';btn.disabled=true;
-  const{data,error}=await sb.auth.signUp({email,password:pw});
-  if(error){btn.textContent=t('re-btn');btn.disabled=false;err.textContent=error.message;return;}
-  if(data.user){await sb.from('profiles').insert({id:data.user.id,display_name:name,role});}
-  btn.textContent=t('re-btn');btn.disabled=false;
-  toast(lang==='is'?'Reikningur búinn til! Skráðu þig inn 👍':'Account created! Sign in 👍');
-  switchTab('login');
+  try {
+    const res=await fetch(`${SURL}/functions/v1/register`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pw,display_name:name,role})
+    });
+    const data=await res.json();
+    if(!res.ok||data.error){err.textContent=data.error||(lang==='is'?'Villa við nýskráningu':'Registration error');return;}
+    toast(lang==='is'?'Reikningur búinn til! Skráðu þig inn 👍':'Account created! Sign in 👍');
+    switchTab('login');
+    document.getElementById('li-email').value=email;
+  } catch(e) {
+    err.textContent='Villa: '+e.message;
+  } finally {
+    btn.textContent=t('re-btn');btn.disabled=false;
+  }
 }
 
 async function doForgot(){
