@@ -407,10 +407,9 @@ const SURL='https://mnczdllakpoffgcxtnbj.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uY3pkbGxha3BvZmZnY3h0bmJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3ODI5NjQsImV4cCI6MjA4OTM1ODk2NH0.1raZl7-573HNq3VRQiOF-tAbmJ6gQJaMYy_9y0WP6F0';
 const sb=supabase.createClient(SURL,SKEY,{
   auth:{
-    storage:window.sessionStorage,
     persistSession:true,
     autoRefreshToken:true,
-    detectSessionInUrl:false,
+    detectSessionInUrl:true,
   }
 });
 
@@ -592,11 +591,22 @@ async function doForgot(){
 async function doLogout(){await sb.auth.signOut();closeUMenu();}
 
 async function loadProfile(){
-  const{data}=await sb.from('profiles').select('*').eq('id',user.id).single();
-  profile=data;
-  if(!profile||!profile.family_id){showAppScreen();showView('setup');return;}
-  const{data:fam}=await sb.from('families').select('*').eq('id',profile.family_id).single();
-  family=fam;showAppScreen();await loadAll();showView('meals');
+  try {
+    const{data,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+    if(error) throw error;
+    profile=data;
+    if(!profile||!profile.family_id){showAppScreen();showView('setup');return;}
+    const{data:fam}=await sb.from('families').select('*').eq('id',profile.family_id).maybeSingle();
+    family=fam;
+    showAppScreen();
+    await loadAll();
+    showView('meals');
+  } catch(e) {
+    console.error('loadProfile error:',e);
+    // Still show app even if profile load fails
+    showAppScreen();
+    showView('setup');
+  }
 }
 async function loadAll(){await Promise.all([loadMeals(),loadWeek(),loadShop()]);}
 
