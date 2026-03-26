@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hvað borðum við?</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:#fdf6ee; --bg2:#f5e9d8; --bg3:#ede0cb; --card:#fffaf4;
+  --warm1:#c0622a; --warm2:#e8874a; --warm3:#f5b07a; --warm4:#fad5ae;
+  --green:#5a7a4a; --text:#2d1f0e; --text2:#6b4c2a; --text3:#a07850;
+  --border:#dbc89a; --shadow:rgba(100,60,20,0.12); --r:16px; --danger:#c0392b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Lora',serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ─── AUTH ─── */
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#f5e9d8,#fdf6ee);}
+.auth-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:32px;max-width:400px;width:100%;box-shadow:0 8px 32px var(--shadow);}
+.auth-card h1{font-family:'Playfair Display',serif;font-size:1.8rem;font-style:italic;color:var(--warm1);text-align:center;margin-bottom:4px;}
+.auth-card .sub{text-align:center;color:var(--text3);font-size:0.82rem;margin-bottom:24px;}
+.tabs{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;}
+.tab{flex:1;padding:9px;text-align:center;cursor:pointer;font-family:'Lora',serif;font-size:0.82rem;background:var(--bg);color:var(--text2);border:none;}
+.tab.on{background:var(--warm1);color:#fff;font-weight:600;}
+.form-panel{display:none;}.form-panel.on{display:block;}
+.fgroup{margin-bottom:12px;}
+.fgroup label{display:block;font-size:0.72rem;color:var(--text2);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+input,select,textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;font-family:'Lora',serif;font-size:0.88rem;background:var(--bg);color:var(--text);outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--warm2);}
+textarea{resize:vertical;min-height:64px;}
+.btn{padding:10px 18px;border:none;border-radius:10px;font-family:'Lora',serif;font-size:0.88rem;cursor:pointer;font-weight:600;transition:opacity .15s;}
+.btn:hover{opacity:.88;}
+.btn-w{width:100%;}
+.btn-p{background:var(--warm1);color:#fff;}
+.btn-s{background:var(--bg2);color:var(--text2);border:1px solid var(--border);}
+.btn-g{background:var(--green);color:#fff;}
+.btn-d{background:var(--danger);color:#fff;}
+.btn-sm{padding:6px 12px;font-size:0.78rem;}
+.btn-ico{background:none;border:none;cursor:pointer;font-size:1rem;padding:3px 5px;border-radius:6px;color:var(--text3);}
+.btn-ico:hover{background:var(--bg2);}
+.err{color:var(--danger);font-size:0.78rem;margin-top:6px;min-height:16px;}
+.ok{color:var(--green);font-size:0.78rem;margin-top:6px;}
+.lnk{background:none;border:none;color:var(--warm1);font-family:'Lora',serif;font-size:0.8rem;cursor:pointer;text-decoration:underline;padding:0;}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:4px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+/* ─── APP ─── */
+#app-screen{display:none;}
+header{background:linear-gradient(135deg,#a04820,#c0622a,#d47840);color:#fff8f0;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 3px 16px rgba(100,40,10,.2);}
+header h1{font-family:'Playfair Display',serif;font-size:1.25rem;font-style:italic;line-height:1.1;}
+header h1 small{font-style:normal;font-size:.68rem;opacity:.78;display:block;}
+.hdr-r{display:flex;align-items:center;gap:7px;}
+.pill{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:5px 11px;font-size:.73rem;color:#fff;cursor:pointer;font-family:'Lora',serif;}
+nav{display:flex;background:var(--bg2);border-bottom:2px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+nav::-webkit-scrollbar{display:none;}
+nav button{flex:1;min-width:64px;padding:9px 5px;border:none;background:transparent;font-family:'Lora',serif;font-size:.73rem;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+nav button.on{color:var(--warm1);border-bottom-color:var(--warm1);font-weight:600;background:var(--card);}
+nav button .ic{display:block;font-size:1.1rem;margin-bottom:1px;}
+main{max-width:720px;margin:0 auto;padding:16px 13px 80px;}
+.view{display:none;}.view.on{display:block;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:13px;box-shadow:0 2px 10px var(--shadow);}
+.card h2{font-family:'Playfair Display',serif;font-size:1rem;color:var(--warm1);margin-bottom:12px;}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.empty{text-align:center;padding:22px;color:var(--text3);font-style:italic;font-size:.85rem;}
+.empty .ei{font-size:1.8rem;display:block;margin-bottom:6px;}
+hr{border:none;border-top:1px solid var(--border);margin:12px 0;}
+.badge{background:var(--warm2);color:#fff;border-radius:10px;padding:1px 7px;font-size:.66rem;font-weight:600;}
+.shdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+
+/* ─── MEALS ─── */
+.meal-row{display:flex;align-items:center;gap:7px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;}
+.meal-name{flex:1;font-size:.88rem;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.mtag{font-size:.64rem;padding:2px 6px;border-radius:8px;font-weight:600;flex-shrink:0;}
+.tok{background:#d4edda;color:#155724;}.tpend{background:#fff3cd;color:#856404;}
+.stars{display:flex;cursor:pointer;flex-shrink:0;}
+.star{font-size:.88rem;color:var(--border);}.star.on{color:var(--warm2);}
+
+/* ─── WHEEL ─── */
+.wcenter{display:flex;flex-direction:column;align-items:center;gap:14px;padding:4px 0;}
+canvas{border-radius:50%;box-shadow:0 6px 24px rgba(100,40,10,.2),0 0 0 5px var(--warm4),0 0 0 7px var(--warm3);max-width:100%;}
+.wres{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--warm1);text-align:center;min-height:1.8rem;font-style:italic;}
+
+/* ─── WEEK ─── */
+.wgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+@media(max-width:460px){.wgrid{grid-template-columns:repeat(4,1fr);}}
+.dcell{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:6px 4px;min-height:66px;cursor:pointer;position:relative;}
+.dcell:hover{border-color:var(--warm2);}
+.dcell.has{background:#fff9f2;border-color:var(--warm3);}
+.dlbl{font-size:.58rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:3px;}
+.dmeal{font-size:.68rem;color:var(--text);line-height:1.3;}
+.dx{position:absolute;top:2px;right:4px;font-size:.58rem;cursor:pointer;opacity:.35;}
+.dx:hover{opacity:1;}
+
+/* ─── SHOPPING ─── */
+.srow{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.chk{width:19px;height:19px;border-radius:5px;border:2px solid var(--border);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.68rem;flex-shrink:0;}
+.chk.on{background:var(--green);border-color:var(--green);color:#fff;}
+.slbl{font-size:.87rem;flex:1;}.slbl.done{opacity:.4;text-decoration:line-through;}
+
+/* ─── FAMILY ─── */
+.fam-name-box{display:flex;align-items:center;gap:12px;padding:4px 0 12px;}
+.fam-icon{width:48px;height:48px;border-radius:50%;background:var(--warm3);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+.fam-name-text{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--warm1);font-style:italic;}
+.fam-name-sub{font-size:.7rem;color:var(--text3);}
+.mem{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;}
+.mav{width:32px;height:32px;border-radius:50%;background:var(--warm3);display:flex;align-items:center;justify-content:center;font-size:.88rem;flex-shrink:0;}
+.mname{font-size:.87rem;font-weight:600;}
+.msub{font-size:.68rem;color:var(--text3);}
+.rbadge{font-size:.62rem;padding:2px 7px;border-radius:8px;font-weight:600;}
+.rp{background:#fde8d8;color:#8a3515;}.rc{background:#d4edda;color:#155724;}
+.invite-box{background:var(--bg);border:1.5px dashed var(--border);border-radius:10px;padding:12px;margin-top:10px;text-align:center;}
+.invite-code{font-size:1.5rem;font-weight:700;letter-spacing:.2em;color:var(--warm1);font-family:monospace;}
+
+/* ─── MODAL ─── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(20,10,0,.5);backdrop-filter:blur(3px);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.overlay.on{display:flex;}
+.modal{background:var(--card);border-radius:var(--r);padding:20px;max-width:380px;width:100%;box-shadow:0 16px 48px rgba(60,20,0,.25);max-height:90vh;overflow-y:auto;}
+.modal h3{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--warm1);margin-bottom:12px;}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
+.dpick{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.dbtn{padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);font-family:'Lora',serif;font-size:.78rem;cursor:pointer;color:var(--text2);}
+.dbtn:hover,.dbtn.on{background:var(--warm1);color:#fff;border-color:var(--warm1);}
+
+/* ─── USER MENU ─── */
+.umenu{position:fixed;top:54px;right:13px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;z-index:150;box-shadow:0 6px 24px var(--shadow);min-width:185px;display:none;}
+.umenu.on{display:block;}
+.uname{font-weight:600;font-size:.85rem;margin-bottom:1px;}
+.uemail{font-size:.7rem;color:var(--text3);margin-bottom:10px;}
+
+/* ─── ACCOUNT ─── */
+.dzone{border:1.5px solid #f5c6cb;border-radius:12px;padding:14px;margin-top:14px;background:#fff8f8;}
+.dzone h3{font-family:'Playfair Display',serif;font-size:.9rem;color:var(--danger);margin-bottom:7px;}
+.dzone p{font-size:.78rem;color:var(--text2);margin-bottom:10px;line-height:1.5;}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--text);color:#fff8f0;padding:9px 20px;border-radius:24px;font-size:.84rem;z-index:300;transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+.toast.on{transform:translateX(-50%) translateY(0);}
+
+/* ─── LOADING ─── */
+.loading{min-height:55vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--text3);font-style:italic;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ AUTH ══════════════ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <h1>🍽️ Hvað borðum við?</h1>
+    <p class="sub">Máltíðaáætlun fjölskyldunnar</p>
+
+    <div class="tabs">
+      <button class="tab on" id="tab-login" onclick="showTab('login')">Innskráning</button>
+      <button class="tab" id="tab-reg" onclick="showTab('reg')">Nýskráning</button>
+      <button class="tab" id="tab-forgot" onclick="showTab('forgot')">Gleymt lykilorð</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="panel-login" class="form-panel on">
+      <div class="fgroup"><label>Tölvupóstfang</label><input type="email" id="li-e" placeholder="þú@dæmi.is" autocomplete="email"></div>
+      <div class="fgroup"><label>Lykilorð</label><input type="password" id="li-p" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="err" id="li-err"></div>
+      <button class="btn btn-p btn-w" id="li-btn" onclick="doLogin()">Skrá inn</button>
+      <div style="text-align:right;margin-top:8px"><button class="lnk" onclick="showTab('forgot')">Gleymt lykilorð?</button></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="panel-reg" class="form-panel">
+      <div class="fgroup"><label>Nafn</label><input type="text" id="re-n" placeholder="Jón Jónsson" autocomplete="name"></div>
+      <div class="fgroup"><label>Tölvupóstfang</label><input type="email" id="re-e" placeholder="þú@dæmi.is" autocomplete="email"></div>
+      <div class="fgroup"><label>Lykilorð</label><input type="password" id="re-p" placeholder="Min. 6 stafir" autocomplete="new-password"></div>
+
+      <div class="err" id="re-err"></div>
+      <button class="btn btn-p btn-w" id="re-btn" onclick="doReg()">Búa til reikning</button>
+    </div>
+
+    <!-- FORGOT -->
+    <div id="panel-forgot" class="form-panel">
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:12px;line-height:1.5">Sláðu inn tölvupóstfangið þitt og við sendum þér hlekk til að endurstilla lykilorðið.</p>
+      <div class="fgroup"><label>Tölvupóstfang</label><input type="email" id="fo-e" placeholder="þú@dæmi.is"></div>
+      <div class="err" id="fo-err"></div>
+      <div class="ok" id="fo-ok" style="display:none"></div>
+      <button class="btn btn-p btn-w" id="fo-btn" onclick="doForgot()">Senda hlekk</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app-screen">
+  <header>
+    <div>
+      <h1>🍽️ Hvað borðum við?<small>Máltíðaáætlun fjölskyldunnar</small></h1>
+    </div>
+    <div class="hdr-r">
+      <button class="pill" id="upill" onclick="toggleUMenu()">👤 <span id="hdr-name"></span></button>
+    </div>
+  </header>
+
+  <div class="umenu" id="umenu">
+    <div class="uname" id="um-name"></div>
+    <div class="uemail" id="um-email"></div>
+    <span class="rbadge" id="um-role" style="display:inline-block;margin-bottom:8px"></span>
+    <hr>
+    <button class="btn btn-s btn-sm btn-w" style="margin-bottom:6px" onclick="goView('account');closeUMenu()">⚙️ Reikningurinn minn</button>
+    <button class="btn btn-d btn-sm btn-w" onclick="doLogout()">🚪 Útskrá</button>
+  </div>
+
+  <nav>
+    <button class="on" id="nav-meals" onclick="goView('meals',this)"><span class="ic">🍽️</span>Réttir</button>
+    <button id="nav-wheel" onclick="goView('wheel',this)"><span class="ic">🎡</span>Hjól</button>
+    <button id="nav-plan" onclick="goView('planner',this)"><span class="ic">📅</span>Vika</button>
+    <button id="nav-shop" onclick="goView('shopping',this)"><span class="ic">🛒</span>Listi</button>
+    <button id="nav-fam" onclick="goView('family',this)"><span class="ic">👨‍👩‍👧‍👦</span>Fjölskylda</button>
+    <button id="nav-tasks" onclick="goView('tasks',this)"><span class="ic">✅</span>Verkefni</button>
+  </nav>
+
+  <main>
+
+    <!-- LOADING -->
+    <div id="view-loading" class="view on">
+      <div class="loading"><div style="font-size:2rem">🍳</div><span>Hleður...</span></div>
+    </div>
+
+    <!-- MEALS -->
+    <div id="view-meals" class="view">
+      <div class="card">
+        <h2>➕ Leggja til rétt</h2>
+        <input type="text" id="meal-name" placeholder="t.d. Spaghettí bolognese" style="margin-bottom:8px">
+        <textarea id="meal-ings" placeholder="Hráefni (eitt í hverri línu)&#10;t.d. Spagettí&#10;Hakk&#10;Tómatsósa" rows="3"></textarea>
+        <div class="row" id="meal-btns"></div>
+      </div>
+      <div class="card">
+        <div class="shdr">
+          <h2 style="margin:0">🍴 Allir réttir</h2>
+          <span class="badge" id="meal-count">0</span>
+        </div>
+        <div id="meals-list"></div>
+      </div>
+    </div>
+
+    <!-- WHEEL -->
+    <div id="view-wheel" class="view">
+      <div class="card">
+        <h2>🎡 Snúðu hjólinu!</h2>
+        <div class="wcenter">
+          <canvas id="wheel" width="280" height="280"></canvas>
+          <div class="wres" id="wres"></div>
+          <button class="btn btn-p" onclick="spinWheel()" style="min-width:130px">🎲 Snúa!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANNER -->
+    <div id="view-planner" class="view">
+      <div class="card">
+        <h2>📅 Vikuáætlun</h2>
+        <div class="wgrid" id="week-grid"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn btn-s btn-sm" onclick="clearWeek()">🗑️ Hreinsa viku</button>
+          <button class="btn btn-g btn-sm" onclick="weekToShop()">🛒 Á innkaupalista</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHOPPING -->
+    <div id="view-shopping" class="view">
+      <div class="card">
+        <div class="shdr">
+          <h2 style="margin:0">🛒 Innkaupalisti</h2>
+          <button class="btn btn-s btn-sm" onclick="clearChecked()">Hreinsa merkt</button>
+        </div>
+        <div class="row" style="margin-bottom:12px">
+          <input type="text" id="shop-in" placeholder="Bæta við hráefni..." style="flex:1">
+          <button class="btn btn-p" style="padding:10px 14px" onclick="addShop()">+</button>
+        </div>
+        <div id="shop-list"></div>
+      </div>
+    </div>
+
+    <!-- FAMILY -->
+    <div id="view-family" class="view">
+      <!-- No family -->
+      <div id="fam-none" style="display:none">
+        <div class="card">
+          <h2>🏠 Búa til fjölskyldu</h2>
+          <p style="font-size:.83rem;color:var(--text2);margin-bottom:14px;line-height:1.5">Þú ert ekki í neinni fjölskyldu enn. Búðu til nýja eða notaðu boðskóða.</p>
+          <div class="fgroup"><label>Heiti fjölskyldu</label><input type="text" id="fam-name-in" placeholder="t.d. Fjölskylda Sigurðarsona"></div>
+          <div class="err" id="fam-err"></div>
+          <button class="btn btn-p btn-w" onclick="createFamily()">🏠 Búa til fjölskyldu</button>
+          <hr>
+          <h2 style="margin-bottom:8px">🔗 Nota boðskóða</h2>
+          <div class="row">
+            <input type="text" id="join-code" placeholder="t.d. a1b2c3d4" maxlength="8" style="flex:1;letter-spacing:.1em">
+            <button class="btn btn-p" onclick="joinFamily()">Ganga í</button>
+          </div>
+          <div class="err" id="join-err"></div>
+        </div>
+      </div>
+      <!-- Has family -->
+      <div id="fam-has" style="display:none">
+        <div class="card">
+          <div class="fam-name-box">
+            <div class="fam-icon">🏠</div>
+            <div style="flex:1">
+              <div class="fam-name-sub">Fjölskyldunafn</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="fam-name-text" id="fam-name-display"></div>
+                <button class="btn-ico" id="rename-btn" onclick="toggleRename()" title="Breyta nafni">✏️</button>
+              </div>
+              <div id="rename-box" style="display:none;margin-top:8px">
+                <div style="display:flex;gap:7px">
+                  <input type="text" id="rename-in" placeholder="Nýtt nafn fjölskyldu" style="flex:1">
+                  <button class="btn btn-p btn-sm" onclick="renameFam()">Vista</button>
+                  <button class="btn btn-s btn-sm" onclick="toggleRename()">✕</button>
+                </div>
+                <div class="err" id="rename-err"></div>
+              </div>
+            </div>
+          </div>
+          <h2>👨‍👩‍👧‍👦 Meðlimir</h2>
+          <div id="members-list"></div>
+          <!-- Parent only -->
+          <div id="parent-section" style="display:none">
+            <hr>
+            <h2>🔗 Bjóða meðlim</h2>
+            <p style="font-size:.78rem;color:var(--text3);margin-bottom:10px">Búðu til boðskóða og sendu hann á þann sem á að bætast við.</p>
+            <button class="btn btn-g btn-sm" onclick="createInvite()">🔗 Búa til boðskóða</button>
+            <div id="invite-box" style="display:none" class="invite-box">
+              <div style="font-size:.72rem;color:var(--text3);margin-bottom:4px">Boðskóði (gildir í 7 daga):</div>
+              <div class="invite-code" id="invite-code"></div>
+              <button class="btn btn-s btn-sm" style="margin-top:8px" onclick="copyCode()">📋 Afrita</button>
+            </div>
+            <hr>
+            <h2>🔑 Tillögur barna</h2>
+            <div id="pending-list"></div>
+            <div id="no-pending" style="display:none;color:var(--text3);font-style:italic;font-size:.82rem">Engar tillögur í bið</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT -->
+    <div id="view-account" class="view">
+      <div class="card">
+        <h2>⚙️ Reikningurinn minn</h2>
+        <h2 style="font-size:.9rem;margin-bottom:8px">🔑 Breyta lykilorði</h2>
+        <div class="fgroup"><label>Nýtt lykilorð</label><input type="password" id="pw1" placeholder="Min. 6 stafir"></div>
+        <div class="fgroup"><label>Staðfesta lykilorð</label><input type="password" id="pw2" placeholder="••••••••"></div>
+        <div class="err" id="pw-err"></div>
+        <div class="ok" id="pw-ok" style="display:none"></div>
+        <button class="btn btn-p" onclick="changePw()">Vista lykilorð</button>
+        <div class="dzone">
+          <h3>⚠️ Hættusvæði</h3>
+          <p>Þetta eyðir reikningnum þínum varanlega og er óafturkræft.</p>
+          <button class="btn btn-d btn-sm" onclick="openDelModal()">🗑️ Eyða reikningi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS -->
+    <div id="view-tasks" class="view">
+      <div class="card">
+        <div class="shdr">
+          <h2 style="margin:0">✅ Verkefnalisti</h2>
+          <span class="badge" id="tasks-count">0</span>
+        </div>
+        <div class="row" style="margin-bottom:12px">
+          <input type="text" id="task-in" placeholder="Nýtt verkefni..." style="flex:1">
+          <select id="task-assign" style="max-width:120px"></select>
+          <button class="btn btn-p" style="padding:10px 14px" onclick="addTask()">+</button>
+        </div>
+        <div id="task-list"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- DAY MODAL -->
+<div class="overlay" id="day-modal">
+  <div class="modal">
+    <h3 id="dm-title">📅</h3>
+    <div class="dpick" id="dm-btns"></div>
+    <div class="mfoot">
+      <button class="btn btn-s" onclick="closeDM()">Hætta við</button>
+    </div>
+  </div>
+</div>
+
+<!-- INGREDIENT MODAL -->
+<div class="overlay" id="ing-modal">
+  <div class="modal">
+    <h3 id="ing-modal-title">🥕 Hráefni</h3>
+    <div id="ing-list" style="margin-bottom:12px"></div>
+    <div style="display:flex;gap:7px;margin-bottom:8px">
+      <input type="text" id="ing-new" placeholder="Bæta við hráefni..." style="flex:1">
+      <button class="btn btn-p btn-sm" onclick="addIng()">+</button>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-s" onclick="closeIng()">Loka</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="overlay" id="del-modal">
+  <div class="modal">
+    <h3>🗑️ Eyða reikningi?</h3>
+    <p style="font-size:.83rem;color:var(--text2);margin-bottom:12px;line-height:1.5">Þetta er óafturkræft. Sláðu inn lykilorðið þitt til að staðfesta.</p>
+    <div class="fgroup"><label>Lykilorð</label><input type="password" id="del-pw" placeholder="Lykilorð"></div>
+    <div class="err" id="del-err"></div>
+    <div class="mfoot">
+      <button class="btn btn-s" onclick="closeDelModal()">Hætta við</button>
+      <button class="btn btn-d" id="del-btn" onclick="doDelete()">🗑️ Eyða</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────
+const SURL = 'https://mnczdllakpoffgcxtnbj.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uY3pkbGxha3BvZmZnY3h0bmJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3ODI5NjQsImV4cCI6MjA4OTM1ODk2NH0.1raZl7-573HNq3VRQiOF-tAbmJ6gQJaMYy_9y0WP6F0';
+const API  = `${SURL}/functions/v1/mat2`;
+const sb   = supabase.createClient(SURL, SKEY);
+
+// ─── STATE ────────────────────────────────────────────────
+let user = null, profile = null, family = null;
+let meals = [], week = {}, shop = [], tasks = [], familyMembers = [];
+
+const DAYS_S = ['Mán','Þri','Mið','Fim','Fös','Lau','Sun'];
+const DAYS_F = ['Mánudagur','Þriðjudagur','Miðvikudagur','Fimmtudagur','Föstudagur','Laugardagur','Sunnudagur'];
+const AVS    = ['🧔','👩','👦','👧','🧒','👴','👵','🧑'];
+
+// ─── API HELPER ───────────────────────────────────────────
+async function callAPI(action, body = {}) {
+  const sess = await sb.auth.getSession();
+  const token = sess.data?.session?.access_token || '';
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-action': action, 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error || 'Villa');
+  return data;
+}
+
+// ─── AUTH ─────────────────────────────────────────────────
+function showAuth() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display  = 'none';
+}
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display  = 'block';
+}
+
+function showTab(name) {
+  ['login','reg','forgot'].forEach(n => {
+    document.getElementById('tab-' + n).classList.toggle('on', n === name);
+    document.getElementById('panel-' + n).classList.toggle('on', n === name);
+  });
+}
+
+async function doLogin() {
+  const email = document.getElementById('li-e').value.trim();
+  const pw    = document.getElementById('li-p').value;
+  const err   = document.getElementById('li-err');
+  const btn   = document.getElementById('li-btn');
+  err.textContent = '';
+  if (!email || !pw) { err.textContent = 'Fylltu inn alla reiti'; return; }
+  btn.innerHTML = '<span class="spin"></span>'; btn.disabled = true;
+  try {
+    const d = await callAPI('login', { email, password: pw });
+    await sb.auth.setSession({ access_token: d.access_token, refresh_token: d.refresh_token });
+    user    = d.user;
+    profile = d.profile;
+    family  = d.family || null;
+    showApp();
+    if (profile?.family_id) {
+      await loadAll();
+      goView('meals');
+    } else {
+      goView('family');
+    }
+    updateHeader();
+  } catch (e) {
+    err.textContent = 'Rangt netfang eða lykilorð';
+  } finally {
+    btn.textContent = 'Skrá inn'; btn.disabled = false;
+  }
+}
+
+async function doReg() {
+  const name = document.getElementById('re-n').value.trim();
+  const email= document.getElementById('re-e').value.trim();
+  const pw   = document.getElementById('re-p').value;
+  const role = 'child'; // default, parents can promote in family tab
+  const err  = document.getElementById('re-err');
+  const btn  = document.getElementById('re-btn');
+  err.textContent = '';
+  if (!name || !email || !pw) { err.textContent = 'Fylltu inn alla reiti'; return; }
+  if (pw.length < 6) { err.textContent = 'Lykilorð þarf að vera min. 6 stafir'; return; }
+  btn.innerHTML = '<span class="spin"></span>'; btn.disabled = true;
+  try {
+    await callAPI('register', { email, password: pw, display_name: name, role });
+    toast('Reikningur búinn til! Skráðu þig inn 👍');
+    showTab('login');
+    document.getElementById('li-e').value = email;
+  } catch (e) {
+    err.textContent = e.message;
+  } finally {
+    btn.textContent = 'Búa til reikning'; btn.disabled = false;
+  }
+}
+
+async function doForgot() {
+  const email = document.getElementById('fo-e').value.trim();
+  const err   = document.getElementById('fo-err');
+  const ok    = document.getElementById('fo-ok');
+  const btn   = document.getElementById('fo-btn');
+  err.textContent = ''; ok.style.display = 'none';
+  if (!email) { err.textContent = 'Sláðu inn tölvupóstfang'; return; }
+  btn.innerHTML = '<span class="spin"></span>'; btn.disabled = true;
+  try {
+    await callAPI('forgot-password', { email });
+    ok.textContent = 'Hlekkur sendur! Athugaðu tölvupóstinn þinn 📬';
+    ok.style.display = 'block';
+  } catch (e) {
+    err.textContent = e.message;
+  } finally {
+    btn.textContent = 'Senda hlekk'; btn.disabled = false;
+  }
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  user = null; profile = null; family = null;
+  meals = []; week = {}; shop = [];
+  showAuth();
+  closeUMenu();
+}
+
+// ─── HEADER ───────────────────────────────────────────────
+function updateHeader() {
+  if (!profile) return;
+  const name = profile.display_name || user?.email || '';
+  document.getElementById('hdr-name').textContent = name;
+  document.getElementById('um-name').textContent  = name;
+  document.getElementById('um-email').textContent = user?.email || '';
+  const r = document.getElementById('um-role');
+  r.textContent = profile.role === 'parent' ? 'Foreldri' : 'Barn';
+  r.className   = 'rbadge ' + (profile.role === 'parent' ? 'rp' : 'rc');
+  const bd = document.getElementById('btn-direct');
+  if (bd) bd.style.display = profile.role === 'parent' ? '' : 'none';
+}
+
+function toggleUMenu() { document.getElementById('umenu').classList.toggle('on'); }
+function closeUMenu()  { document.getElementById('umenu').classList.remove('on'); }
+document.addEventListener('click', e => {
+  if (!e.target.closest('#umenu') && !e.target.closest('#upill')) closeUMenu();
+});
+
+// ─── VIEWS ────────────────────────────────────────────────
+function goView(name, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('on'));
+  const el = document.getElementById('view-' + name);
+  if (el) el.classList.add('on');
+  if (btn) btn.classList.add('on');
+  else {
+    const nb = document.getElementById('nav-' + name);
+    if (nb) nb.classList.add('on');
+  }
+  if (name === 'wheel')   drawWheel();
+  if (name === 'planner') renderWeek();
+  if (name === 'family')  renderFamily();
+  if (name === 'tasks')   { renderTasks(); renderTaskAssignSelect(); }
+  closeUMenu();
+}
+
+// ─── LOAD ALL ─────────────────────────────────────────────
+async function loadAll() {
+  await Promise.all([loadMeals(), loadWeek(), loadShop(), loadTasks(), loadMembers()]);
+}
+
+// ─── MEALS ────────────────────────────────────────────────
+async function loadMeals() {
+  if (!profile?.family_id) return;
+  const { data } = await sb.from('meals').select('*').eq('family_id', profile.family_id).order('created_at');
+  meals = data || [];
+  renderMeals();
+}
+
+async function addMeal(approved) {
+  if (!profile?.family_id) { toast('Þú þarft að vera í fjölskyldu fyrst'); return; }
+  const name = document.getElementById('meal-name').value.trim();
+  if (!name) return;
+  const ings = document.getElementById('meal-ings').value.trim().split('\n').map(s => s.trim()).filter(Boolean);
+  try {
+    await callAPI('add-meal', { name, ingredients: ings, approved });
+    document.getElementById('meal-name').value = '';
+    document.getElementById('meal-ings').value = '';
+    await loadMeals();
+    toast(approved ? 'Rétti bætt við! 🍽️' : 'Tillaga send! 👍');
+  } catch (e) { toast('Villa: ' + e.message); }
+}
+
+function renderMeals() {
+  // Show correct buttons based on role
+  const btnRow = document.getElementById('meal-btns');
+  if (btnRow) {
+    if (profile?.role === 'parent') {
+      btnRow.innerHTML = '<button class="btn btn-p" onclick="addMeal(true)">✅ Bæta við</button>';
+    } else {
+      btnRow.innerHTML = '<button class="btn btn-s" onclick="addMeal(false)">🙋 Leggja til</button>';
+    }
+  }
+  const list  = document.getElementById('meals-list');
+  const appr  = meals.filter(m => m.approved);
+  const pend  = meals.filter(m => !m.approved);
+  document.getElementById('meal-count').textContent = appr.length;
+  if (!appr.length && !pend.length) {
+    list.innerHTML = '<div class="empty"><span class="ei">🍳</span>Engir réttir enn. Bættu við!</div>';
+    return;
+  }
+  list.innerHTML = [...appr, ...pend].map(m => {
+    const stars = [1,2,3,4,5].map(i =>
+      `<span class="star ${m.rating >= i ? 'on' : ''}" onclick="rateMeal('${m.id}',${i})">★</span>`
+    ).join('');
+    const tag = m.approved
+      ? `<span class="mtag tok">Samþykkt</span>`
+      : `<span class="mtag tpend">Í bið</span>`;
+    return `<div class="meal-row">
+      <span class="meal-name" style="cursor:pointer;text-decoration:underline dotted" onclick="openIng('${m.id}')">${m.name}</span>
+      ${tag}
+      <div class="stars">${stars}</div>
+      <button class="btn-ico" onclick="openDM_meal('${m.id}')">📅</button>
+      <button class="btn-ico" onclick="delMeal('${m.id}')">🗑️</button>
+    </div>`;
+  }).join('');
+}
+
+async function rateMeal(id, r) {
+  await sb.from('meals').update({ rating: r }).eq('id', id);
+  await loadMeals();
+}
+
+async function delMeal(id) {
+  await sb.from('meals').delete().eq('id', id);
+  await loadMeals();
+  renderFamily();
+}
+
+// ─── WHEEL ────────────────────────────────────────────────
+let wA = 0, wSpinning = false;
+const CX = 140, CY = 140, R = 128;
+const COLS = ['#c0622a','#d47840','#e8a060','#5a7a4a','#c8965a','#7da667','#e8874a','#8a6a3a'];
+
+function drawWheel(hi = -1) {
+  const c = document.getElementById('wheel');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const items = meals.filter(m => m.approved);
+  ctx.clearRect(0, 0, 280, 280);
+  if (!items.length) {
+    ctx.fillStyle = '#f5e9d8'; ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#a07850'; ctx.font = '13px Lora,serif'; ctx.textAlign = 'center';
+    ctx.fillText('Engir réttir!', CX, CY); return;
+  }
+  const sl = (Math.PI * 2) / items.length;
+  items.forEach((m, i) => {
+    const s = wA + i * sl, e = s + sl;
+    ctx.beginPath(); ctx.moveTo(CX, CY); ctx.arc(CX, CY, R, s, e); ctx.closePath();
+    ctx.fillStyle = i === hi ? '#fff3cd' : COLS[i % COLS.length];
+    ctx.fill(); ctx.strokeStyle = '#fffaf4'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.save(); ctx.translate(CX, CY); ctx.rotate(s + sl/2);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#fff';
+    ctx.font = `bold ${Math.min(12, 105/items.length + 6)}px Lora,serif`;
+    ctx.fillText(m.name.length > 13 ? m.name.slice(0, 12) + '…' : m.name, R - 8, 4);
+    ctx.restore();
+  });
+  ctx.beginPath(); ctx.arc(CX, CY, 18, 0, Math.PI*2);
+  ctx.fillStyle = '#fffaf4'; ctx.fill(); ctx.strokeStyle = '#dbc89a'; ctx.lineWidth = 2; ctx.stroke();
+  // Pointer on right side, tip pointing LEFT into wheel
+  ctx.beginPath(); ctx.moveTo(CX+R+8,CY); ctx.lineTo(CX+R+22,CY-8); ctx.lineTo(CX+R+22,CY+8);
+  ctx.closePath(); ctx.fillStyle = '#2d1f0e'; ctx.fill();
+}
+
+function spinWheel() {
+  if (wSpinning) return;
+  const items = meals.filter(m => m.approved);
+  if (!items.length) { toast('Engir réttir á hjólinu!'); return; }
+  wSpinning = true;
+  document.getElementById('wres').textContent = '';
+  const total = Math.PI * 2 * (5 + Math.random() * 5);
+  const dur = 3500, t0 = performance.now(), a0 = wA;
+  function go(now) {
+    const tt = Math.min((now - t0) / dur, 1), ease = 1 - Math.pow(1 - tt, 4);
+    wA = a0 + total * ease; drawWheel();
+    if (tt < 1) { requestAnimationFrame(go); return; }
+    wA = wA % (Math.PI * 2);
+    const sl = (Math.PI * 2) / items.length;
+    // Pointer is on right side (angle 0), find slice at angle 0
+    const normalised = ((Math.PI * 2) - (wA % (Math.PI * 2))) % (Math.PI * 2);
+    const idx = Math.floor(normalised / sl) % items.length;
+    drawWheel(idx);
+    document.getElementById('wres').textContent = '🍽️ Í kvöld: ' + items[idx].name;
+    wSpinning = false;
+  }
+  requestAnimationFrame(go);
+}
+
+// ─── WEEK ─────────────────────────────────────────────────
+async function loadWeek() {
+  if (!profile?.family_id) return;
+  const { data } = await sb.from('week_plan').select('*').eq('family_id', profile.family_id);
+  week = {};
+  (data || []).forEach(r => { week[r.day_index] = r.meal_id; });
+  renderWeek();
+}
+
+function renderWeek() {
+  const g = document.getElementById('week-grid');
+  if (!g) return;
+  g.innerHTML = Array.from({ length: 7 }, (_, i) => {
+    const meal = week[i] ? meals.find(m => m.id === week[i]) : null;
+    return `<div class="dcell ${meal ? 'has' : ''}" onclick="openDM_cell(${i})">
+      <div class="dlbl">${DAYS_S[i]}</div>
+      ${meal ? `<div class="dmeal">${meal.name}</div><span class="dx" onclick="event.stopPropagation();clearDay(${i})">✕</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+let dmTarget = null;
+function openDM_meal(id) {
+  dmTarget = { type: 'meal', id };
+  const meal = meals.find(m => m.id === id);
+  document.getElementById('dm-title').textContent = '📅 ' + meal.name;
+  document.getElementById('dm-btns').innerHTML = DAYS_F.map((d, i) =>
+    `<button class="dbtn ${week[i] === id ? 'on' : ''}" onclick="assignDay(${i})">${d}</button>`
+  ).join('');
+  document.getElementById('day-modal').classList.add('on');
+}
+function openDM_cell(di) {
+  const appr = meals.filter(m => m.approved);
+  if (!appr.length) { toast('Engir réttir!'); return; }
+  dmTarget = { type: 'cell', di };
+  document.getElementById('dm-title').textContent = '📅 ' + DAYS_F[di];
+  document.getElementById('dm-btns').innerHTML = appr.map(m =>
+    `<button class="dbtn ${week[di] === m.id ? 'on' : ''}" onclick="assignDay2(${di},'${m.id}')">${m.name}</button>`
+  ).join('');
+  document.getElementById('day-modal').classList.add('on');
+}
+async function assignDay(di) {
+  if (!dmTarget || dmTarget.type !== 'meal') return;
+  await sb.from('week_plan').upsert({ family_id: profile.family_id, day_index: di, meal_id: dmTarget.id }, { onConflict: 'family_id,day_index' });
+  closeDM(); await loadWeek(); toast('Sett á viku! 📅');
+}
+async function assignDay2(di, mid) {
+  await sb.from('week_plan').upsert({ family_id: profile.family_id, day_index: di, meal_id: mid }, { onConflict: 'family_id,day_index' });
+  closeDM(); await loadWeek(); toast('Sett á viku! 📅');
+}
+async function clearDay(i) {
+  await sb.from('week_plan').delete().eq('family_id', profile.family_id).eq('day_index', i);
+  await loadWeek();
+}
+async function clearWeek() {
+  await sb.from('week_plan').delete().eq('family_id', profile.family_id);
+  await loadWeek();
+}
+async function weekToShop() {
+  const exist = shop.map(s => s.name.toLowerCase());
+  const ins = [];
+  for (let i = 0; i < 7; i++) {
+    if (!week[i]) continue;
+    const meal = meals.find(m => m.id === week[i]);
+    (meal?.ingredients || []).forEach(ing => {
+      if (!exist.includes(ing.toLowerCase())) {
+        ins.push({ family_id: profile.family_id, name: ing, checked: false });
+        exist.push(ing.toLowerCase());
+      }
+    });
+  }
+  if (ins.length) await sb.from('shopping_items').insert(ins);
+  await loadShop(); toast(`${ins.length} hráefni bætt! 🛒`);
+}
+function closeDM() { document.getElementById('day-modal').classList.remove('on'); }
+
+// ─── SHOPPING ─────────────────────────────────────────────
+async function loadShop() {
+  if (!profile?.family_id) return;
+  const { data } = await sb.from('shopping_items').select('*').eq('family_id', profile.family_id).order('created_at');
+  shop = data || [];
+  renderShop();
+}
+function renderShop() {
+  const list = document.getElementById('shop-list');
+  if (!list) return;
+  if (!shop.length) { list.innerHTML = '<div class="empty"><span class="ei">🛒</span>Listi er tómur</div>'; return; }
+  list.innerHTML = shop.map(s => `
+    <div class="srow">
+      <div class="chk ${s.checked ? 'on' : ''}" onclick="toggleChk('${s.id}',${!s.checked})">${s.checked ? '✓' : ''}</div>
+      <span class="slbl ${s.checked ? 'done' : ''}">${s.name}</span>
+      <button class="btn-ico" onclick="rmShop('${s.id}')">✕</button>
+    </div>`).join('');
+}
+async function addShop() {
+  const inp = document.getElementById('shop-in');
+  const name = inp.value.trim(); if (!name) return;
+  await sb.from('shopping_items').insert({ family_id: profile.family_id, name, checked: false });
+  inp.value = ''; await loadShop();
+}
+async function toggleChk(id, v) {
+  await sb.from('shopping_items').update({ checked: v }).eq('id', id);
+  await loadShop();
+}
+async function rmShop(id) {
+  await sb.from('shopping_items').delete().eq('id', id);
+  await loadShop();
+}
+async function clearChecked() {
+  await sb.from('shopping_items').delete().eq('family_id', profile.family_id).eq('checked', true);
+  await loadShop();
+}
+
+// ─── FAMILY ───────────────────────────────────────────────
+function toggleRename() {
+  const box = document.getElementById('rename-box');
+  const showing = box.style.display !== 'none';
+  box.style.display = showing ? 'none' : 'block';
+  if (!showing) {
+    document.getElementById('rename-in').value = family?.name || '';
+    document.getElementById('rename-err').textContent = '';
+  }
+}
+
+async function renameFam() {
+  const name = document.getElementById('rename-in').value.trim();
+  const err  = document.getElementById('rename-err');
+  err.textContent = '';
+  if (!name) { err.textContent = 'Sláðu inn nafn'; return; }
+  const { error } = await sb.from('families').update({ name }).eq('id', profile.family_id);
+  if (error) { err.textContent = error.message; return; }
+  family.name = name;
+  document.getElementById('fam-name-display').textContent = name;
+  document.getElementById('rename-box').style.display = 'none';
+  toast('Nafni breytt! ✏️');
+}
+
+async function renderFamily() {
+  const none = document.getElementById('fam-none');
+  const has  = document.getElementById('fam-has');
+  if (!profile?.family_id) {
+    none.style.display = 'block'; has.style.display = 'none'; return;
+  }
+  none.style.display = 'none'; has.style.display = 'block';
+
+  // Family name
+  if (family) {
+    document.getElementById('fam-name-display').textContent = family.name;
+  } else {
+    const { data: f } = await sb.from('families').select('*').eq('id', profile.family_id).single();
+    family = f;
+    document.getElementById('fam-name-display').textContent = f?.name || '';
+  }
+
+  // Members
+  const { data: mems } = await sb.from('profiles').select('*').eq('family_id', profile.family_id);
+  const isParentUser = profile.role === 'parent';
+  document.getElementById('members-list').innerHTML = (mems || []).map((m, i) => {
+    const isMe = m.id === user.id;
+    const roleBtn = isParentUser && !isMe
+      ? `<button class="btn btn-s btn-sm" style="font-size:.68rem" onclick="toggleRole('${m.id}','${m.role}')">${m.role === 'parent' ? '→ Barn' : '→ Foreldri'}</button>`
+      : '';
+    return `<div class="mem">
+      <div class="mav">${AVS[i % AVS.length]}</div>
+      <div style="flex:1">
+        <div class="mname">${m.display_name || '—'} ${isMe ? '<span style="font-size:.6rem;background:var(--warm4);padding:1px 6px;border-radius:7px;color:var(--warm1)">þú</span>' : ''}</div>
+        ${isMe ? `<div class="msub">${user.email}</div>` : ''}
+      </div>
+      <span class="rbadge ${m.role === 'parent' ? 'rp' : 'rc'}">${m.role === 'parent' ? 'Foreldri' : 'Barn'}</span>
+      ${roleBtn}
+    </div>`;
+  }).join('') || '<div class="empty">Engir meðlimir</div>';
+
+  // Parent section
+  const isParent = profile.role === 'parent';
+  document.getElementById('parent-section').style.display = isParent ? 'block' : 'none';
+  if (isParent) {
+    const pend = meals.filter(m => !m.approved);
+    const pel  = document.getElementById('pending-list');
+    const nel  = document.getElementById('no-pending');
+    if (!pend.length) { pel.innerHTML = ''; nel.style.display = 'block'; }
+    else {
+      nel.style.display = 'none';
+      pel.innerHTML = pend.map(m => `
+        <div class="mem">
+          <span style="flex:1;font-size:.85rem">${m.name}</span>
+          <button class="btn btn-g btn-sm" onclick="approveMeal('${m.id}')">✅ Samþykkja</button>
+          <button class="btn btn-s btn-sm" onclick="delMeal('${m.id}')">❌</button>
+        </div>`).join('');
+    }
+  }
+}
+
+async function createFamily() {
+  const name = document.getElementById('fam-name-in').value.trim();
+  const err  = document.getElementById('fam-err');
+  err.textContent = '';
+  if (!name) { err.textContent = 'Sláðu inn heiti'; return; }
+  try {
+    const r = await callAPI('create-family', { name });
+    profile = r.profile; family = r.family;
+    updateHeader(); await loadAll(); renderFamily();
+    toast('Fjölskylda búin til! 🏠');
+  } catch (e) { err.textContent = e.message; }
+}
+
+async function joinFamily() {
+  const code = document.getElementById('join-code').value.trim().toLowerCase();
+  const err  = document.getElementById('join-err');
+  err.textContent = '';
+  if (!code) { err.textContent = 'Sláðu inn kóða'; return; }
+  try {
+    const r = await callAPI('join-family', { code });
+    profile = r.profile; family = r.family;
+    updateHeader(); await loadAll(); renderFamily();
+    toast('Kominn í fjölskylduna! 👨‍👩‍👧‍👦');
+  } catch (e) { err.textContent = 'Ógildur eða útrunninn kóði'; }
+}
+
+async function createInvite() {
+  try {
+    const r = await callAPI('create-invite', {});
+    document.getElementById('invite-code').textContent = r.code;
+    document.getElementById('invite-box').style.display = 'block';
+    toast('Boðskóði búinn til! 🔗');
+  } catch (e) { toast('Villa: ' + e.message); }
+}
+
+function copyCode() {
+  const code = document.getElementById('invite-code').textContent;
+  navigator.clipboard.writeText(code).then(() => toast('Kóði afritaður! 📋'));
+}
+
+async function approveMeal(id) {
+  await sb.from('meals').update({ approved: true }).eq('id', id);
+  await loadMeals(); renderFamily(); toast('Samþykkt! ✅');
+}
+
+// ─── ACCOUNT ──────────────────────────────────────────────
+async function changePw() {
+  const pw1 = document.getElementById('pw1').value;
+  const pw2 = document.getElementById('pw2').value;
+  const err = document.getElementById('pw-err');
+  const ok  = document.getElementById('pw-ok');
+  err.textContent = ''; ok.style.display = 'none';
+  if (!pw1 || !pw2) { err.textContent = 'Fylltu inn bæði reiti'; return; }
+  if (pw1.length < 6) { err.textContent = 'Min. 6 stafir'; return; }
+  if (pw1 !== pw2) { err.textContent = 'Lykilorðin stemma ekki'; return; }
+  try {
+    await callAPI('change-password', { password: pw1 });
+    ok.textContent = 'Lykilorð breytt! 🔑'; ok.style.display = 'block';
+    document.getElementById('pw1').value = '';
+    document.getElementById('pw2').value = '';
+  } catch (e) { err.textContent = e.message; }
+}
+
+function openDelModal()  { document.getElementById('del-pw').value = ''; document.getElementById('del-err').textContent = ''; document.getElementById('del-modal').classList.add('on'); }
+function closeDelModal() { document.getElementById('del-modal').classList.remove('on'); }
+
+async function doDelete() {
+  const pw  = document.getElementById('del-pw').value;
+  const err = document.getElementById('del-err');
+  const btn = document.getElementById('del-btn');
+  err.textContent = '';
+  if (!pw) { err.textContent = 'Sláðu inn lykilorð'; return; }
+  // Re-auth first
+  const { error: ae } = await sb.auth.signInWithPassword({ email: user.email, password: pw });
+  if (ae) { err.textContent = 'Rangt lykilorð'; return; }
+  btn.innerHTML = '<span class="spin"></span>'; btn.disabled = true;
+  try {
+    await callAPI('delete-user', {});
+    await sb.auth.signOut();
+    closeDelModal(); showAuth();
+    toast('Reikningi eytt 👋');
+  } catch (e) {
+    err.textContent = e.message;
+    btn.textContent = '🗑️ Eyða'; btn.disabled = false;
+  }
+}
+
+// ─── TASKS ────────────────────────────────────────────────
+async function loadMembers() {
+  if (!profile?.family_id) return;
+  const { data } = await sb.from('profiles').select('*').eq('family_id', profile.family_id);
+  familyMembers = data || [];
+  renderTaskAssignSelect();
+}
+
+function renderTaskAssignSelect() {
+  const sel = document.getElementById('task-assign');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Enginn úthlutaður</option>' +
+    familyMembers.map(m => `<option value="${m.id}">${m.display_name || m.id.slice(0,6)}</option>`).join('');
+}
+
+async function loadTasks() {
+  if (!profile?.family_id) return;
+  const { data } = await sb.from('tasks').select('*').eq('family_id', profile.family_id).order('created_at');
+  tasks = data || [];
+  renderTasks();
+}
+
+async function addTask() {
+  const inp = document.getElementById('task-in');
+  const title = inp.value.trim(); if (!title) return;
+  const assigned = document.getElementById('task-assign').value || null;
+  const { error } = await sb.from('tasks').insert({
+    family_id: profile.family_id, title, done: false,
+    assigned_to: assigned, created_by: user.id
+  });
+  if (error) { toast('Villa: ' + error.message); return; }
+  inp.value = ''; await loadTasks();
+}
+
+async function toggleTask(id, done) {
+  await sb.from('tasks').update({ done }).eq('id', id);
+  await loadTasks();
+}
+
+async function deleteTask(id) {
+  await sb.from('tasks').delete().eq('id', id);
+  await loadTasks();
+}
+
+function renderTasks() {
+  const list = document.getElementById('task-list');
+  if (!list) return;
+  const open = tasks.filter(t => !t.done);
+  const done = tasks.filter(t => t.done);
+  document.getElementById('tasks-count').textContent = open.length;
+  if (!tasks.length) {
+    list.innerHTML = '<div class="empty"><span class="ei">✅</span>Engin verkefni. Frábært!</div>';
+    return;
+  }
+  const renderTask = t => {
+    const assignee = t.assigned_to ? familyMembers.find(m => m.id === t.assigned_to) : null;
+    const aname = assignee ? assignee.display_name : '';
+    return `<div class="srow">
+      <div class="chk ${t.done ? 'on' : ''}" onclick="toggleTask('${t.id}',${!t.done})">${t.done ? '✓' : ''}</div>
+      <span class="slbl ${t.done ? 'done' : ''}" style="flex:1">${t.title}</span>
+      ${aname ? `<span style="font-size:.68rem;color:var(--text3);background:var(--bg2);padding:2px 7px;border-radius:8px">${aname}</span>` : ''}
+      <button class="btn-ico" onclick="deleteTask('${t.id}')">🗑️</button>
+    </div>`;
+  };
+  let html = open.map(renderTask).join('');
+  if (done.length) {
+    html += `<div style="font-size:.72rem;color:var(--text3);margin:10px 0 6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Lokið</div>`;
+    html += done.map(renderTask).join('');
+  }
+  list.innerHTML = html;
+}
+
+// ─── INGREDIENT MODAL ────────────────────────────────────
+let currentMealId = null;
+
+function openIng(id) {
+  currentMealId = id;
+  const meal = meals.find(m => m.id === id);
+  if (!meal) return;
+  document.getElementById('ing-modal-title').textContent = '🥕 ' + meal.name;
+  document.getElementById('ing-new').value = '';
+  renderIngList(meal.ingredients || []);
+  document.getElementById('ing-modal').classList.add('on');
+}
+
+function renderIngList(ings) {
+  const list = document.getElementById('ing-list');
+  if (!ings.length) {
+    list.innerHTML = '<div style="color:var(--text3);font-style:italic;font-size:.83rem;text-align:center;padding:8px">Engin hráefni skráð</div>';
+    return;
+  }
+  list.innerHTML = ings.map((ing, i) => `
+    <div class="srow">
+      <span class="slbl" style="flex:1">${ing}</span>
+      <button class="btn-ico" onclick="removeIng(${i})">✕</button>
+    </div>`).join('');
+}
+
+async function addIng() {
+  const inp = document.getElementById('ing-new');
+  const val = inp.value.trim(); if (!val) return;
+  const meal = meals.find(m => m.id === currentMealId);
+  if (!meal) return;
+  const ings = [...(meal.ingredients || []), val];
+  const { error } = await sb.from('meals').update({ ingredients: ings }).eq('id', currentMealId);
+  if (error) { toast('Villa: ' + error.message); return; }
+  meal.ingredients = ings;
+  inp.value = '';
+  renderIngList(ings);
+  renderMeals();
+}
+
+async function removeIng(idx) {
+  const meal = meals.find(m => m.id === currentMealId);
+  if (!meal) return;
+  const ings = (meal.ingredients || []).filter((_, i) => i !== idx);
+  const { error } = await sb.from('meals').update({ ingredients: ings }).eq('id', currentMealId);
+  if (error) { toast('Villa: ' + error.message); return; }
+  meal.ingredients = ings;
+  renderIngList(ings);
+  renderMeals();
+}
+
+function closeIng() { document.getElementById('ing-modal').classList.remove('on'); }
+
+// ─── ROLE MANAGEMENT ─────────────────────────────────────
+async function toggleRole(memberId, currentRole) {
+  const newRole = currentRole === 'parent' ? 'child' : 'parent';
+  const { error } = await sb.from('profiles').update({ role: newRole }).eq('id', memberId);
+  if (error) { toast('Villa: ' + error.message); return; }
+  if (memberId === user.id) profile.role = newRole;
+  await loadMembers();
+  renderFamily();
+  toast(newRole === 'parent' ? 'Gerður að foreldri 👑' : 'Gerður að barni 👦');
+}
+
+// ─── TOAST ────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('on');
+  setTimeout(() => el.classList.remove('on'), 2600);
+}
+
+// ─── MODAL CLOSE ON OVERLAY ───────────────────────────────
+document.getElementById('day-modal').addEventListener('click', function(e) { if (e.target === this) closeDM(); });
+document.getElementById('ing-modal').addEventListener('click', function(e) { if (e.target === this) closeIng(); });
+document.getElementById('del-modal').addEventListener('click', function(e) { if (e.target === this) closeDelModal(); });
+
+// ─── ENTER KEYS ───────────────────────────────────────────
+document.getElementById('li-p').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('li-e').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('shop-in').addEventListener('keydown', e => { if (e.key === 'Enter') addShop(); });
+document.getElementById('del-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doDelete(); });
+document.getElementById('ing-new').addEventListener('keydown', e => { if (e.key === 'Enter') addIng(); });
+
+// ─── INIT ─────────────────────────────────────────────────
+// Hide loading, show auth
+document.getElementById('view-loading').classList.remove('on');
+</script>
+</body>
+</html>
